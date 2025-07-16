@@ -1,20 +1,21 @@
+// src/services/api.js
 import axios from 'axios';
 
-// Create an Axios instance
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api', // Change this if using a different backend port or domain
+  baseURL: 'http://localhost:5000/api', // Change this to your backend URL
+  withCredentials: true,               // Send cookies if using authentication
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Automatically attach token if available
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// Optional: Interceptors for global error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('API Error:', error.response?.data?.message || error.message);
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 export default api;
