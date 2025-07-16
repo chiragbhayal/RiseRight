@@ -1,47 +1,42 @@
-// 📁 client/src/App.js
-import './App.css';
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
+// 📁 src/App.js
+
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import MainLayout from './layout/MainLayout';
 
 // Pages
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import GrowthAnalysis from "./pages/GrowthAnalysis";
-import PredictFuture from "./pages/PredictFuture";
-import BusinessDomain from "./pages/BusinessDomain";
-import LearningResources from "./pages/LearningResources";
-import FutureTrends from "./pages/FutureTrends";
-import StartupSlip from "./pages/StartupSlip";
-import Funding from "./pages/Funding";
-import StartupLocation from "./pages/StartupLocation";
-import FutureDemand from "./pages/FutureDemand";
-import Hire from "./pages/Hire";
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import AddBusiness from './pages/AddBusiness';
+import BusinessDetail from './pages/BusinessDetail';
+import Profile from './pages/Profile';
+import NotFound from './pages/NotFound';
 
-function App() {
+// Styles
+import './styles/animations.css'; // 🌈 Global animations & custom styling
+
+const App = () => {
   return (
-    <Router>
-      <Navbar />
-      <div className="p-4">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/growth-analysis" element={<GrowthAnalysis />} />
-          <Route path="/predict-future" element={<PredictFuture />} />
-          <Route path="/business-domain" element={<BusinessDomain />} />
-          <Route path="/learning-resources" element={<LearningResources />} />
-          <Route path="/future-trends" element={<FutureTrends />} />
-          <Route path="/startup-slip" element={<StartupSlip />} />
-          <Route path="/funding" element={<Funding />} />
-          <Route path="/startup-location" element={<StartupLocation />} />
-          <Route path="/future-demand" element={<FutureDemand />} />
-          <Route path="/hire" element={<Hire />} /> 
-        </Routes>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <MainLayout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/add-business" element={<AddBusiness />} />
+            <Route path="/business/:id" element={<BusinessDetail />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </MainLayout>
+      </Router>
+    </AuthProvider>
   );
-}
+};
 
 export default App;

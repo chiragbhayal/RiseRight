@@ -1,45 +1,57 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+// client/src/components/Sidebar.jsx
+
+import { NavLink } from 'react-router-dom';
+import {
+  Home,
+  Briefcase,
+  BarChart2,
+  FileText,
+  User,
+  LogOut,
+} from 'lucide-react';
 
 const Sidebar = () => {
-  const location = useLocation();
-
-  const navItems = [
-    { label: "Dashboard", path: "/dashboard" },
-    { label: "Growth", path: "/growth-analysis" },
-    { label: "Future", path: "/predict-future" },
-    { label: "Funding", path: "/funding" },
-    { label: "Location", path: "/startup-location" },
-    { label: "Demand", path: "/future-demand" },
-    { label: "Hire", path: "/hire" },
-    { label: "Trends", path: "/future-trends" },
-    { label: "Resources", path: "/learning-resources" },
-    { label: "Startup Slip", path: "/startup-slip" },
-  ];
-
   return (
-    <div className="w-64 h-screen bg-gray-900 text-white fixed top-0 left-0 shadow-lg">
-      <div className="p-5 text-2xl font-bold border-b border-gray-700">
-        RiseRight
+    <aside className="h-screen w-64 bg-white border-r shadow-sm fixed top-0 left-0 z-40 hidden md:flex flex-col justify-between transition-all duration-300">
+      {/* Logo */}
+      <div className="p-6">
+        <h1 className="text-2xl font-bold text-blue-600 tracking-wide">RiseRight</h1>
       </div>
-      <ul className="mt-4 space-y-2 px-4">
-        {navItems.map((item) => (
-          <li key={item.path}>
-            <Link
-              to={item.path}
-              className={`block py-2 px-3 rounded-md ${
-                location.pathname === item.path
-                  ? "bg-blue-600 text-white"
-                  : "hover:bg-gray-700"
-              }`}
-            >
-              {item.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
+
+      {/* Nav Links */}
+      <nav className="flex-1 px-4 space-y-3">
+        <NavItem to="/dashboard" icon={<Home />} label="Dashboard" />
+        <NavItem to="/add-business" icon={<Briefcase />} label="Add Business" />
+        <NavItem to="/analysis" icon={<BarChart2 />} label="Analysis" />
+        <NavItem to="/resources" icon={<FileText />} label="Resources" />
+        <NavItem to="/profile" icon={<User />} label="Profile" />
+      </nav>
+
+      {/* Footer */}
+      <div className="px-4 py-4 border-t text-gray-500">
+        <button className="flex items-center gap-2 hover:text-red-500 transition-colors duration-200">
+          <LogOut className="w-5 h-5" />
+          Logout
+        </button>
+      </div>
+    </aside>
   );
 };
+
+const NavItem = ({ to, icon, label }) => (
+  <NavLink
+    to={to}
+    className={({ isActive }) =>
+      `flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 ${
+        isActive
+          ? 'bg-blue-100 text-blue-600 font-semibold'
+          : 'text-gray-700 hover:bg-gray-100'
+      }`
+    }
+  >
+    {icon}
+    <span>{label}</span>
+  </NavLink>
+);
 
 export default Sidebar;
