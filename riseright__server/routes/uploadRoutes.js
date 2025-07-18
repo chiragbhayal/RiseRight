@@ -1,11 +1,10 @@
-const express = require('express');
+import express from 'express';
+import { upload } from '../utils/s3Uploader.js';
+
 const router = express.Router();
-const { uploadFile } = require('../controllers/uploadController');
-const { protect } = require('../middleware/authMiddleware');
 
-// @route   POST /api/upload
-// @desc    Upload a file to cloud storage
-// @access  Private
-router.post('/', protect, uploadFile);
+router.post('/upload', upload.single('file'), (req, res) => {
+  res.json({ imageUrl: req.file.location });
+});
 
-module.exports = router;
+export default router;
