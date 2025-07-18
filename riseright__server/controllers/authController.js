@@ -1,92 +1,107 @@
-// 📁 server/controllers/authController.js
-
 const User = require('../models/User');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+const generateToken = require('../utils/generateToken');
+const asyncHandler = require('express-async-handler');
 
-// ENV secret
-const JWT_SECRET = process.env.JWT_SECRET || 'default_secret';
+// @desc    Register a new user
+// @route   POST /api/auth/register
+// @access  Public
+const registerUser = asyncHandler(async (req, res) => {
+  const { name, email, password } = req.body;
 
-// ✅ Generate JWT Token
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, JWT_SECRET, {
-    expiresIn: '7d',
-  });
-};
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    res.status(400);
+    throw new Error('User already exists');
+  }
 
-// 🔐 @desc   Register new user
-// 📍 @route  POST /api/auth/register
-exports.registerUser = async (req, res, next) => {
-  try {
-    const { name, email, password } = req.body;
+  const user = await User.create({ name, email, password });
 
-    // Validate
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: 'All fields are required.' });
-    }
-
-    // Check user exists
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: 'Email already in use.' });
-    }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create user
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
-
-    // Respond with token
+  if (user) {
     res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
       token: generateToken(user._id),
     });
-  } catch (err) {
-    next(err);
+  } else {
+    res.status(400);
+    throw new Error('Invalid user data');
   }
-};
+});
 
-// 🔐 @desc   Login user
-// 📍 @route  POST /api/auth/login
-exports.loginUser = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
+// @desc    Login user
+// @route   POST /api/auth/login
+// @access  Public
+const loginUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
 
-    // Find user
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Invalid credentials.' });
+  const user = await User.findOne({ email });
 
-    // Compare passwords
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials.' });
-
-    // Respond with token
-    res.status(200).json({
+  if (user && (await user.matchPassword(password))) {
+    res.json({
       _id: user._id,
       name: user.name,
       email: user.email,
       token: generateToken(user._id),
     });
-  } catch (err) {
-    next(err);
+  } else {
+    res.status(401);
+    throw new Error('Invalid email or password');
   }
+});
+
+// @desc    Get user profile
+// @route   GET /api/auth/profile
+// @access  Private
+const getUserProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select('-password');
+
+  if (user) {
+    res.json(user);
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateUserProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+    if (req.body.password) {
+      user.password = req.body.password;
+    }
+
+    const updatedUser = await user.save();
+
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      token: generateToken(updatedUser._id),
+    });
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+// @desc    Logout user
+// @route   POST /api/auth/logout
+// @access  Private (optional, token-based logout)
+const logoutUser = (req, res) => {
+  res.json({ message: 'User logged out (token deletion handled on client)' });
 };
 
-// 🔓 @desc   Get current logged in user (protected route)
-// 📍 @route  GET /api/auth/me
-exports.getMe = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.user.id).select('-password');
-    res.status(200).json(user);
-  } catch (err) {
-    next(err);
-  }
+module.exports = {
+  registerUser,
+  loginUser,
+  getUserProfile,
+  updateUserProfile,
+  logoutUser,
 };
