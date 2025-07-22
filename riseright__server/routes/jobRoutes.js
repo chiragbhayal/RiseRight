@@ -1,32 +1,27 @@
-const express = require('express');
+// routes/jobRoutes.js
+
+import express from 'express';
+
 const router = express.Router();
-const {
-  createJob,
-  getAllJobs,
-  getJobById,
-  updateJob,
-  deleteJob,
-} = require('../controllers/jobController');
-const { protect } = require('../middleware/authMiddleware');
 
-// @route   POST /api/jobs
-// @desc    Create a new job posting
-router.post('/', protect, createJob);
+// Example GET route
+router.get('/', (req, res) => {
+  res.status(200).json({ message: 'Job routes working fine ✅' });
+});
 
-// @route   GET /api/jobs
-// @desc    Get all job postings
-router.get('/', protect, getAllJobs);
+// You can add more routes here
+// Example POST route for creating a job
+router.post('/', (req, res) => {
+  const jobData = req.body;
+  // Logic to save jobData in database will go here
+  res.status(201).json({ message: 'Job created successfully', data: jobData });
+});
 
-// @route   GET /api/jobs/:id
-// @desc    Get a job by ID
-router.get('/:id', protect, getJobById);
+// Example route to get job by ID
+router.get('/:id', (req, res) => {
+  const jobId = req.params.id;
+  // Logic to fetch job by ID from DB
+  res.status(200).json({ message: `Fetching job with ID: ${jobId}` });
+});
 
-// @route   PUT /api/jobs/:id
-// @desc    Update a job posting
-router.put('/:id', protect, updateJob);
-
-// @route   DELETE /api/jobs/:id
-// @desc    Delete a job posting
-router.delete('/:id', protect, deleteJob);
-
-module.exports = router;
+export default router;

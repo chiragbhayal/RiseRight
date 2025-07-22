@@ -1,27 +1,23 @@
-const express = require('express');
-const router = express.Router();
-const {
+// routes/businessRoutes.js
+
+import express from 'express';
+import {
+  getAllBusinesses,
   createBusiness,
-  getMyBusinesses,
   getBusinessById,
   updateBusiness,
   deleteBusiness,
-} = require('../controllers/businessController');
-const { protect } = require('../middleware/authMiddleware');
+} from '../controllers/businessController.js';
 
-// @route   POST /api/business
-router.post('/', protect, createBusiness);
+const router = express.Router();
 
-// @route   GET /api/business
-router.get('/', protect, getMyBusinesses);
+router.route('/')
+  .get(getAllBusinesses)
+  .post(createBusiness);
 
-// @route   GET /api/business/:id
-router.get('/:id', protect, getBusinessById);
+router.route('/:id')
+  .get(getBusinessById)
+  .put(updateBusiness)
+  .delete(deleteBusiness);
 
-// @route   PUT /api/business/:id
-router.put('/:id', protect, updateBusiness);
-
-// @route   DELETE /api/business/:id
-router.delete('/:id', protect, deleteBusiness);
-
-module.exports = router;
+export default router;

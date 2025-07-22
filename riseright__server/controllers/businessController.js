@@ -1,91 +1,92 @@
-const Business = require('../models/Business');
-const asyncHandler = require('express-async-handler');
+import Business from '../models/Business.js';
 
-// @desc    Create a new business entry
-// @route   POST /api/business
-// @access  Private
-const createBusiness = asyncHandler(async (req, res) => {
-  const { name, industry, location, revenue, employees, description } = req.body;
-
-  const business = new Business({
-    user: req.user._id,
-    name,
-    industry,
-    location,
-    revenue,
-    employees,
-    description,
-  });
-
-  const createdBusiness = await business.save();
-  res.status(201).json(createdBusiness);
-});
-
-// @desc    Get all businesses for the logged-in user
-// @route   GET /api/business
-// @access  Private
-const getBusinesses = asyncHandler(async (req, res) => {
-  const businesses = await Business.find({ user: req.user._id });
-  res.json(businesses);
-});
-
-// @desc    Get a single business by ID
-// @route   GET /api/business/:id
-// @access  Private
-const getBusinessById = asyncHandler(async (req, res) => {
-  const business = await Business.findById(req.params.id);
-
-  if (business && business.user.equals(req.user._id)) {
-    res.json(business);
-  } else {
-    res.status(404);
-    throw new Error('Business not found or not authorized');
+// @desc    Get all businesses
+// @route   GET /api/businesses
+// @access  Public
+export const getAllBusinesses = async (req, res) => {
+  try {
+    const businesses = await Business.find();
+    res.json(businesses);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error });
   }
-});
+};
+
+// @desc    Create a new business
+// @route   POST /api/businesses
+// @access  Public
+export const createBusiness = async (req, res) => {
+  const { name, industry, description } = req.body;
+
+  try {
+    const newBusiness = new Business({
+      name,
+      industry,
+      description
+    });
+
+    const savedBusiness = await newBusiness.save();
+    res.status(201).json(savedBusiness);
+  } catch (error) {
+    res.status(400).json({ message: 'Invalid business data', error });
+  }
+};
+
+// @desc    Get a business by ID
+// @route   GET /api/businesses/:id
+// @access  Public
+export const getBusinessById = async (req, res) => {
+  try {
+    const business = await Business.findById(req.params.id);
+
+    if (business) {
+      res.json(business);
+    } else {
+      res.status(404).json({ message: 'Business not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error });
+  }
+};
 
 // @desc    Update a business
-// @route   PUT /api/business/:id
-// @access  Private
-const updateBusiness = asyncHandler(async (req, res) => {
-  const { name, industry, location, revenue, employees, description } = req.body;
+// @route   PUT /api/businesses/:id
+// @access  Public
+export const updateBusiness = async (req, res) => {
+  const { name, industry, description } = req.body;
 
-  const business = await Business.findById(req.params.id);
+  try {
+    const business = await Business.findById(req.params.id);
 
-  if (business && business.user.equals(req.user._id)) {
-    business.name = name || business.name;
-    business.industry = industry || business.industry;
-    business.location = location || business.location;
-    business.revenue = revenue || business.revenue;
-    business.employees = employees || business.employees;
-    business.description = description || business.description;
+    if (business) {
+      business.name = name || business.name;
+      business.industry = industry || business.industry;
+      business.description = description || business.description;
 
-    const updatedBusiness = await business.save();
-    res.json(updatedBusiness);
-  } else {
-    res.status(404);
-    throw new Error('Business not found or not authorized');
+      const updatedBusiness = await business.save();
+      res.json(updatedBusiness);
+    } else {
+      res.status(404).json({ message: 'Business not found' });
+    }
+  } catch (error) {
+    res.status(400).json({ message: 'Invalid data or server error', error });
   }
-});
+};
 
 // @desc    Delete a business
-// @route   DELETE /api/business/:id
-// @access  Private
-const deleteBusiness = asyncHandler(async (req, res) => {
-  const business = await Business.findById(req.params.id);
+// @route   DELETE /api/businesses/:id
+// @access  Public
+export const deleteBusiness = async (req, res) => {
+  try {
+    const business = await Business.findById(req.params.id);
 
-  if (business && business.user.equals(req.user._id)) {
-    await business.remove();
-    res.json({ message: 'Business removed' });
-  } else {
-    res.status(404);
-    throw new Error('Business not found or not authorized');
+    if (business) {
+      await business.remove();
+      res.json({ message: 'Business removed' });
+    } else {
+      res.status(404).json({ message: 'Business not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error });
   }
-});
-
-module.exports = {
-  createBusiness,
-  getBusinesses,
-  getBusinessById,
-  updateBusiness,
-  deleteBusiness,
 };

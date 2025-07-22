@@ -2,7 +2,7 @@ import express from 'express';
 import {
   registerUser,
   loginUser,
-  getCurrentUserProfile,
+  getUserProfile, // ✅ Corrected import name
   updateUserProfile,
   logoutUser,
 } from '../controllers/authController.js';
@@ -21,7 +21,7 @@ router.post('/login', loginUser);
 router.post('/logout', logoutUser);
 
 // @route   GET /api/auth/me
-router.get('/me', protect, getCurrentUserProfile);
+router.get('/me', protect, getUserProfile); // ✅ Updated to correct function
 
 // @route   PUT /api/auth/me
 router.put('/me', protect, updateUserProfile);

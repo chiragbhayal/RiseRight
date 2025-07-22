@@ -1,30 +1,39 @@
-// routes/analysisRoutes.js
-
 import express from 'express';
 import {
-  predictGrowth,
-  suggestLocations,
-  recommendUniversities,
-  generateTips,
-  matchResources,
+  createAnalysis,
+  getAllAnalyses,
+  getAnalysisById,
+  updateAnalysis,
+  deleteAnalysis
 } from '../controllers/analysisController.js';
+
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// @route   POST /api/analysis/growth
-router.post('/growth', protect, predictGrowth);
+// @route   POST /api/analysis
+// @desc    Create a new analysis entry
+// @access  Private
+router.post('/', protect, createAnalysis);
 
-// @route   POST /api/analysis/location
-router.post('/location', protect, suggestLocations);
+// @route   GET /api/analysis
+// @desc    Get all analysis entries
+// @access  Private
+router.get('/', protect, getAllAnalyses);
 
-// @route   POST /api/analysis/universities
-router.post('/universities', protect, recommendUniversities);
+// @route   GET /api/analysis/:id
+// @desc    Get a specific analysis by ID
+// @access  Private
+router.get('/:id', protect, getAnalysisById);
 
-// @route   POST /api/analysis/tips
-router.post('/tips', protect, generateTips);
+// @route   PUT /api/analysis/:id
+// @desc    Update an analysis by ID
+// @access  Private
+router.put('/:id', protect, updateAnalysis);
 
-// @route   POST /api/analysis/resources
-router.post('/resources', protect, matchResources);
+// @route   DELETE /api/analysis/:id
+// @desc    Delete an analysis by ID
+// @access  Private
+router.delete('/:id', protect, deleteAnalysis);
 
 export default router;

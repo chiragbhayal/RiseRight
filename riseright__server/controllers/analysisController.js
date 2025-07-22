@@ -1,122 +1,96 @@
-import asyncHandler from 'express-async-handler';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import User from '../models/userModel.js';
+import Analysis from '../models/Analysis.js';
 
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
-export const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+// @desc    Create a new analysis entry
+// @route   POST /api/analysis
+// @access  Private
+export const createAnalysis = async (req, res) => {
+  try {
+    const { title, description, data } = req.body;
 
-  const userExists = await User.findOne({ email });
-  if (userExists) {
-    res.status(400);
-    throw new Error('User already exists');
-  }
-
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
-
-  const user = await User.create({
-    name,
-    email,
-    password: hashedPassword,
-  });
-
-  if (user) {
-    res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      token: generateToken(user._id),
+    const analysis = new Analysis({
+      user: req.user._id,
+      title,
+      description,
+      data
     });
-  } else {
-    res.status(400);
-    throw new Error('Invalid user data');
+
+    const savedAnalysis = await analysis.save();
+    res.status(201).json(savedAnalysis);
+  } catch (error) {
+    console.error('Error creating analysis:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
-});
+};
 
-// @desc    Login user
-// @route   POST /api/auth/login
-// @access  Public
-export const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-
-  const user = await User.findOne({ email });
-  if (user && (await bcrypt.compare(password, user.password))) {
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      token: generateToken(user._id),
-    });
-  } else {
-    res.status(401);
-    throw new Error('Invalid email or password');
+// @desc    Get all analyses for logged-in user
+// @route   GET /api/analysis
+// @access  Private
+export const getAllAnalyses = async (req, res) => {
+  try {
+    const analyses = await Analysis.find({ user: req.user._id }).sort({ createdAt: -1 });
+    res.status(200).json(analyses);
+  } catch (error) {
+    console.error('Error fetching analyses:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
-});
+};
 
-// @desc    Logout user
-// @route   POST /api/auth/logout
+// @desc    Get a specific analysis by ID
+// @route   GET /api/analysis/:id
 // @access  Private
-export const logoutUser = asyncHandler(async (req, res) => {
-  res.json({ message: 'User logged out' });
-});
+export const getAnalysisById = async (req, res) => {
+  try {
+    const analysis = await Analysis.findOne({ _id: req.params.id, user: req.user._id });
 
-// @desc    Get current user profile
-// @route   GET /api/auth/me
-// @access  Private
-export const getCurrentUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id).select('-password');
-
-  if (user) {
-    res.json(user);
-  } else {
-    res.status(404);
-    throw new Error('User not found');
-  }
-});
-
-// @desc    Update user profile
-// @route   PUT /api/auth/me
-// @access  Private
-export const updateUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id);
-
-  if (user) {
-    user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
-
-    if (req.body.password) {
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(req.body.password, salt);
+    if (!analysis) {
+      return res.status(404).json({ message: 'Analysis not found' });
     }
 
-    const updatedUser = await user.save();
-
-    res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      token: generateToken(updatedUser._id),
-    });
-  } else {
-    res.status(404);
-    throw new Error('User not found');
+    res.status(200).json(analysis);
+  } catch (error) {
+    console.error('Error fetching analysis:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
-});
-
-// Utility: Generate JWT token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '30d',
-  });
 };
-export default {
-  registerUser,
-  loginUser,
-  logoutUser,
-  getCurrentUserProfile,
-  updateUserProfile,
+
+// @desc    Update a specific analysis
+// @route   PUT /api/analysis/:id
+// @access  Private
+export const updateAnalysis = async (req, res) => {
+  try {
+    const { title, description, data } = req.body;
+
+    const updatedAnalysis = await Analysis.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
+      { title, description, data },
+      { new: true }
+    );
+
+    if (!updatedAnalysis) {
+      return res.status(404).json({ message: 'Analysis not found or not authorized' });
+    }
+
+    res.status(200).json(updatedAnalysis);
+  } catch (error) {
+    console.error('Error updating analysis:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Delete a specific analysis
+// @route   DELETE /api/analysis/:id
+// @access  Private
+export const deleteAnalysis = async (req, res) => {
+  try {
+    const deleted = await Analysis.findOneAndDelete({ _id: req.params.id, user: req.user._id });
+
+    if (!deleted) {
+      return res.status(404).json({ message: 'Analysis not found or not authorized' });
+    }
+
+    res.status(200).json({ message: 'Analysis deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting analysis:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
 };

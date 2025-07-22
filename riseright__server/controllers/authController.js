@@ -1,11 +1,12 @@
-const User = require('../models/User');
-const generateToken = require('../utils/generateToken');
-const asyncHandler = require('express-async-handler');
+// controllers/authController.js
+import User from '../models/User.js';
+import generateToken from '../utils/generateToken.js';
+import asyncHandler from 'express-async-handler';
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
-const registerUser = asyncHandler(async (req, res) => {
+export const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
   const userExists = await User.findOne({ email });
@@ -32,7 +33,7 @@ const registerUser = asyncHandler(async (req, res) => {
 // @desc    Login user
 // @route   POST /api/auth/login
 // @access  Public
-const loginUser = asyncHandler(async (req, res) => {
+export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email });
@@ -50,10 +51,10 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get user profile
-// @route   GET /api/auth/profile
+// @desc    Get current user profile
+// @route   GET /api/auth/me
 // @access  Private
-const getUserProfile = asyncHandler(async (req, res) => {
+export const getUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id).select('-password');
 
   if (user) {
@@ -65,9 +66,9 @@ const getUserProfile = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update user profile
-// @route   PUT /api/auth/profile
+// @route   PUT /api/auth/me
 // @access  Private
-const updateUserProfile = asyncHandler(async (req, res) => {
+export const updateUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
   if (user) {
@@ -93,15 +94,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
 // @desc    Logout user
 // @route   POST /api/auth/logout
-// @access  Private (optional, token-based logout)
-const logoutUser = (req, res) => {
+// @access  Private
+export const logoutUser = (req, res) => {
   res.json({ message: 'User logged out (token deletion handled on client)' });
-};
-
-module.exports = {
-  registerUser,
-  loginUser,
-  getUserProfile,
-  updateUserProfile,
-  logoutUser,
 };
